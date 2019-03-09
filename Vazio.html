@@ -25,12 +25,12 @@
   }
 
   @font-face {
-    font-family: 'Sun';
-    src: url('Sun.ttf');
+    font-family: 'KidsZone';
+    src: url('KidsZone.ttf');
   }
 
   .hidden {
-    font-family: 'Sun';
+    font-family: 'KidsZone';
     visibility: hidden;
     position: absolute;
   }
@@ -121,6 +121,10 @@
         game.load.image('whatsapp', "Sprites/Asset_whatsapp.png");
         game.load.image('btnUp', "Sprites/btnUp.png");
         game.load.image('btnDown', "Sprites/btnDown.png");
+        
+        game.load.audio('jump', 'Sons/jump.wav');
+        game.load.audio('agachar', 'Sons/Slide2.wav');
+        game.load.audio('musicaGame', 'Sons/musicaGame.mp3')
     }
     
         var background;
@@ -157,7 +161,13 @@
         var txtRestart;
         var txtMenu;
       
+        var somPular;
+        var somAgachar;
+        var musicaGame;
+      
         var DistanciaMaior = 0;
+      
+        var morto = false;
       
     this.create = function() {
         
@@ -177,7 +187,7 @@
         player.animations.add("morrer", [10,11], 12, false);
         player.animations.play("correr");
         player.scale.setTo(0.8);
-        player.body.setSize(137,281,63,0);
+        player.body.setSize(110,281,63,0);
         
         colisor = game.add.sprite(0,620, 'colisor');
         game.physics.enable(colisor, Phaser.Physics.ARCADE);
@@ -185,9 +195,7 @@
         colisor.body.collideWorldBounds = true;
         colisor.body.immovable = true;
         colisor.body.gravity.y = 0;
-        colisor.alpha = 0 ;
-        
-        
+        colisor.alpha = 0 ;     
         
         grupoFacebook = game.add.group();
         grupoFacebook.enableBody = true;
@@ -225,7 +233,7 @@
         btnDown.alpha = 0.8;
         
         txtDistancia = game.add.text(15, 15, 'Score: ', {
-            font: '45px Sun',
+            font: '60px KidsZone',
             fill: '#fff',
             fill: "white"
         });
@@ -234,7 +242,7 @@
          
 
         txtGameOver = game.add.text(game.world.centerX, -50, 'Game Over', {
-            font: '110px Sun',
+            font: '110px KidsZone',
             fill: '#fff'
         });
         txtGameOver.anchor.set(0.5);
@@ -243,7 +251,7 @@
         
 
         txtNovoHighScore = game.add.text(-500, 300, 'Nova distancia maxima!!', {
-            font: '50px Sun',
+            font: '50px KidsZone',
             fill: '#fff'
         });
         txtNovoHighScore.anchor.set(0.5);
@@ -251,16 +259,15 @@
         txtNovoHighScore.strokeThickness = 6;
 
         txtScoreTela = game.add.text(-300, 390, 'Distancia: 0', {
-            font: '70px Sun',
+            font: '70px KidsZone',
             fill: '#fff'
         });
         txtScoreTela.anchor.set(0.5);
         txtScoreTela.stroke = "#000000";
-        txtScoreTela.strokeThickness = 6;
-        
+        txtScoreTela.strokeThickness = 6;       
 
         txtHighScore = game.add.text(-300, 470, 'Distancia maxima: 0', {
-            font: '40px Sun',
+            font: '40px KidsZone',
             fill: '#fff'
         });
         txtHighScore.anchor.set(0.5);
@@ -268,7 +275,7 @@
         txtHighScore.strokeThickness = 6;
 
         txtRestart = game.add.text(window.innerWidth + 400, 550, 'Restart', {
-            font: '45px Sun',
+            font: '45px KidsZone',
             fill: '#fff'
         });
         txtRestart.anchor.set(.5);
@@ -278,7 +285,7 @@
         txtRestart.strokeThickness = 6;
 
         txtMenu = game.add.text(window.innerWidth + 400, 600, 'Menu', {
-            font: '40px Sun',
+            font: '40px KidsZone',
             fill: '#fff'
         });
         txtMenu.anchor.set(.5);
@@ -286,32 +293,40 @@
         txtMenu.events.onInputDown.add(backMenu, this);
         txtMenu.stroke = "#000000";
         txtMenu.strokeThickness = 6;
-        
-        
-        
+          
         btnPular   = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR); 
         btnAgachar = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
         
         btnUp.events.onInputDown.add(pular, this);
         btnDown.events.onInputDown.add(agachar, this);
         btnDown.events.onInputUp.add(pararAgachar, this);
+        
+        somPular = game.add.audio('jump', 1);
+        somAgachar = game.add.audio('agachar', 0.1);
+        musicaGame = game.add.audio('musicaGame', 0.1,true);
+        
+        
         restart();
     }
     
     function pular() {
-        if (!jaPulou && !agachando) {
+        if (!morto && !jaPulou && !agachando) {
             player.body.velocity.y = -800;
             player.animations.play("pular");
             jaPulou = true;
+            somPular.play();
+            player.body.setSize(80,281,63,0);
+            
         }
     }
     
     function agachar() {
         btnDownDown = true;
-        if (!jaPulou && !agachando) {
+        if (!morto && !jaPulou && !agachando) {
             player.animations.play("agachar");
             agachando = true;
-            player.body.setSize(137,212,63,69);
+            somAgachar.play();
+            player.body.setSize(110,211,63,70);
         }
     }
     
@@ -319,19 +334,20 @@
         btnDownDown = false;
     }
     
-    function backMenu(){
-        
+    function backMenu(){     
         game.state.start('TelaMenu');
+        musicaGame.stop();
     }
       
     this.render = function() {
-
-        game.debug.body(player);
-
+        //game.debug.body(player);
+        
     }
 
 
     this.update = function() {
+        
+        console.log(player.body.y);
         
         var lista = grupoFacebook.getAll('exists', true);
         for (var i = 0; i < lista.length; i++) {
@@ -376,29 +392,37 @@
         
         
         game.physics.arcade.collide(player, colisor);
-        game.physics.arcade.overlap(player, [grupoFacebook,grupoNetflix,grupoInstagram,grupoYoutube,grupoWhatsApp], collisionHandler, null, this);
         
-        background.tilePosition.x -= 10;
-      
-        if (!jaPulou && !agachando) {
-            if (btnPular.isDown) {
-                player.body.velocity.y = -850;
-                player.animations.play("pular");
-                jaPulou = true;
-            } else if (btnAgachar.isDown){
-                player.animations.play("agachar");
-                agachando = true;
-            }
-        } else {
-            if (agachando && !btnAgachar.isDown && !btnDownDown) {
-                player.animations.play("correr");
-                agachando = false;
-                player.body.setSize(137,281,63,0);
-            } else if (jaPulou && player.body.touching.down) {
-                player.animations.play("correr");
-                jaPulou = false;
+        if(morto == false){
+            game.physics.arcade.overlap(player, [grupoFacebook,grupoNetflix,grupoInstagram,grupoYoutube,grupoWhatsApp], collisionHandler, null, this);
+
+            if (!morto) {
+                background.tilePosition.x -= 10;
+                if (!jaPulou && !agachando) {
+                    if (btnPular.isDown) {
+                        player.body.velocity.y = -850;
+                        player.animations.play("pular");
+                        jaPulou = true;
+                        
+
+                    } else if (btnAgachar.isDown){
+                        player.animations.play("agachar");
+                        agachando = true;
+                    }
+                } else {
+                    if (agachando && !btnAgachar.isDown && !btnDownDown) {
+                        player.animations.play("correr");
+                        agachando = false;
+                        player.body.setSize(110,281,63,0);
+                    } else if (jaPulou && player.body.touching.down) {
+                        player.animations.play("correr");
+                        jaPulou = false;
+                        player.body.setSize(110,281,63,0);
+                    }
+                }
             }
         }
+      
     }
     
     function contaDistancia() {
@@ -412,13 +436,15 @@
       
     function collisionHandler(player, icone){
         
+        morto = true;
         btnUp.kill();
         btnDown.kill();
         txtDistancia.kill();
+        musicaGame.stop();
         
-        player.body.setSize(137,150,63,131);
+        
+        player.body.setSize(110,150,63,131);
  
-        
         player.animations.play("morrer");
         background.tilePosition.x +=0;
         
@@ -437,13 +463,13 @@
         txtNovoHighScore.setText("Novo recorde!!!");
         txtRestart.setText("Restart");
         txtMenu.setText("Menu");
-        txtScoreTela.setText("Distancia: " + distancia);
-        txtHighScore.setText("Distancia Maxima: " + DistanciaMaior);
+        txtScoreTela.setText("Distância: " + distancia);
+        txtHighScore.setText("Distância Máxima: " + DistanciaMaior);
         
         if (distancia > DistanciaMaior) {
             
             DistanciaMaior = distancia;
-            txtHighScore.setText("Distancia maxima: " + DistanciaMaior);           
+            txtHighScore.setText("Distância máxima: " + DistanciaMaior);           
             game.add.tween(txtNovoHighScore).to({ x: game.world.centerX }, 500).start();
         }
         
@@ -575,7 +601,9 @@
     }
       
     function restart(){
+        morto = false;
         
+        musicaGame.play();
         player.revive();
         btnDown.revive();
         btnUp.revive();
@@ -625,15 +653,14 @@
     
     var txtLogo;
     var txtJogar;
-    var txtUm;
-    var txtDois;
+    var txtTutorial;
     
     this.create = function() {
         
         var fundo = game.add.sprite(0,0, 'Fundo');
         
         txtLogo = game.add.text(-200, 340, '', {
-            font: '110px Sun',
+            font: '110px KidsZone',
             fill: '#fff'
         });
         txtLogo.anchor.set(0.5);
@@ -642,7 +669,7 @@
         game.add.tween(txtLogo).to({ x: game.world.centerX }, 500).start();
         
         txtJogar = game.add.text(1480, 440, '', {
-            font: '60px Sun',
+            font: '60px KidsZone',
             fill: '#fff'
         });
         txtJogar.anchor.set(0.5);
@@ -652,23 +679,18 @@
         txtJogar.events.onInputDown.add(play, this);
         game.add.tween(txtJogar).to({ x: game.world.centerX }, 500).start();
         
-        txtUm = game.add.text(-200, 520, '', {
-            font: '30px Sun',
+        txtTutorial = game.add.text(-200, 520, '', {
+            font: '45px KidsZone',
             fill: '#fff'
         });
-        txtUm.anchor.set(0.5);
-        txtUm.stroke = "#000000";
-        txtUm.strokeThickness = 6;
-        game.add.tween(txtUm).to({ x: game.world.centerX }, 500).start();
         
-        txtDois = game.add.text(1480, 560, '', {
-            font: '30px Sun',
-            fill: '#fff'
-        });
-        txtDois.anchor.set(0.5);
-        txtDois.stroke = "#000000";
-        txtDois.strokeThickness = 6;
-        game.add.tween(txtDois).to({ x: game.world.centerX }, 500).start();
+        txtTutorial.anchor.set(0.5);
+        txtTutorial.stroke = "#000000";
+        txtTutorial.strokeThickness = 6;
+        txtTutorial.inputEnabled = true;
+        txtTutorial.events.onInputDown.add(telaTutorial, this);
+        game.add.tween(txtTutorial).to({ x: game.world.centerX }, 500).start();
+        
         
     }
     
@@ -676,19 +698,81 @@
         
         game.state.start('TelaInicial');
     }
-
+      
+    function telaTutorial(){
+        game.state.start('TelaTutorial');
+    }
+      
     this.update = function() {
         
         txtLogo.setText("TechRun");
         txtJogar.setText("Jogar");
-        txtUm.setText("Arraste para cima para pular");
-        txtDois.setText("Arraste para baixo para agachar");
+        txtTutorial.setText("Como jogar");
+        
         }
         
     }
+      
+  function TelaTutorial(game) {
 
+    this.init = function() {
+
+      game.input.maxPointers = 1;
+
+      // Deixar o jogo executando, mesmo se o browser mudar de aba?
+      game.stage.disableVisibilityChange = false;
+
+      if (game.device.desktop) {
+        // Configurações específicas para desktop
+
+        // Como criamos o CSS acima, não precisamos centralizar via código
+        game.scale.pageAlignHorizontally = false;
+      } else {
+        // Configurações específicas para celulares
+
+        game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+        // Especifica o tamanho mímino e máximo para a área do jogo (de 400x300 até 800x600)
+        game.scale.setMinMax(400, 300, 1280, 720);
+        game.scale.forceLandscape = true;
+        // Como criamos o CSS acima, não precisamos centralizar via código
+        game.scale.pageAlignHorizontally = false;
+      }
+
+    }
+
+    this.preload = function() {
+        
+        game.load.crossOrigin = "anonymous";
+        game.load.image('Fundo', 'Sprites/imgTuto.png',1280,720);
+        game.load.image('btnJogar', 'Sprites/btnJogar.png');
+
+    }
+    
+    var btnJogar;
+      
+    this.create = function() {
+        
+        var fundo = game.add.sprite(0,0, 'Fundo');
+        btnJogar = game.add.sprite(900,600, 'btnJogar');
+        btnJogar.inputEnabled = true;
+        btnJogar.events.onInputDown.add(telaJogar, this);
+    }
+    
+    function telaJogar(){
+        game.state.start("TelaInicial");
+    }
+    
+    this.update = function() {
+        
+        }
+        
+    }
+  
+      
+  
   game.state.add("TelaInicial", TelaInicial);
   game.state.add("TelaMenu", TelaMenu);
+  game.state.add("TelaTutorial", TelaTutorial);  
   //]]>
 
   </script>
