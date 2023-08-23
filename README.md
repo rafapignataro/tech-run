@@ -8,6 +8,10 @@ Web game developed for an event at my college. It was played by people on tablet
 - HTML, CSS, Javascript
 - Phaser.js
 
+## Play right now 🕹️
+
+https://rafapignataro.github.io/tech-run/
+
 ## Run in your computer 🚀
 
 ### 1. Serve the index.html
