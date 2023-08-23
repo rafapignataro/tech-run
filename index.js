@@ -349,16 +349,16 @@ function TelaInicial(game) {
           if (!morto) {
               background.tilePosition.x -= 10;
               if (!jaPulou && !agachando) {
-                  if (btnPular.isDown) {
-                      player.body.velocity.y = -850;
-                      player.animations.play("pular");
-                      jaPulou = true;
+                  // if (btnPular.isDown) {
+                  //     player.body.velocity.y = -850;
+                  //     player.animations.play("pular");
+                  //     jaPulou = true;
                       
 
-                  } else if (btnAgachar.isDown){
-                      player.animations.play("agachar");
-                      agachando = true;
-                  }
+                  // } else if (btnAgachar.isDown){
+                  //     player.animations.play("agachar");
+                  //     agachando = true;
+                  // }
               } else {
                   if (agachando && !btnAgachar.isDown && !btnDownDown) {
                       player.animations.play("correr");
